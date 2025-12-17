@@ -52,6 +52,17 @@ __pycache__/
 venv/
 .venv/
 
+# Python tooling and environment
+.env
+.env.*
+.pytest_cache/
+.mypy_cache/
+pip-wheel-metadata/
+*.egg-info/
+*.egg
+backend/tmp_import_test.py
+
+
 # Development tools
 chainlit.md
 .chainlit

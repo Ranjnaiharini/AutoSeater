@@ -453,13 +453,20 @@ async def generate_seating(request: SeatingGenerateRequest, current_user: User =
     if not exam:
         raise HTTPException(status_code=404, detail="Exam not found")
     
+    # Log exam filter info for debugging
+    logger.info(f"Seating generation requested for exam_id={request.exam_id} departments={exam.get('departments')} subjects={exam.get('subjects')}")
+
     # Get eligible students
     eligible_students = await db.students.find({
         "department": {"$in": exam['departments']},
         "subjects": {"$in": exam['subjects']}
     }, {"_id": 0}).to_list(10000)
     
+    logger.info(f"Found {len(eligible_students)} eligible students for exam_id={request.exam_id}")
+
     if not eligible_students:
+        # Provide a helpful log entry to assist debugging in dev environments
+        logger.warning(f"No eligible students found for exam_id={request.exam_id} using filter departments={exam.get('departments')} subjects={exam.get('subjects')}")
         raise HTTPException(status_code=400, detail="No eligible students found")
     
     # Get rooms
@@ -536,8 +543,15 @@ async def generate_seating(request: SeatingGenerateRequest, current_user: User =
                 if not any(subject_lists):
                     break
             
-            # Count assigned students
-            student_index += sum(len(assignments) for assignments in [left_student, right_student] if assignments)
+            # Count how many students were actually assigned to desks in this room
+            assigned_in_room = 0
+            for d in desk_assignments:
+                if d.left_student:
+                    assigned_in_room += 1
+                if d.right_student:
+                    assigned_in_room += 1
+
+            student_index += assigned_in_room
         
         else:  # ONE_PER_DESK (Semester mode)
             # 1 student per desk, sequential roll order
