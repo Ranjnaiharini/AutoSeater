@@ -89,3 +89,11 @@ agenthub/agents/youtube/db
 
 # Mobile development
 android-sdk/ 
+
+.env
+.env.*
+backend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local  
